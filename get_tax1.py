@@ -119,7 +119,7 @@ def summary_year(all_profits,save_path):
     df_result.to_csv(save_path, index=False, encoding='utf-8-sig')
 
     
-def main(platform='longbridge'):
+def main(platform='futu'):
     df = pd.read_csv(f'data/{platform}_history.csv')
     # 按照秒级时间排序
     df['交易时间'] = pd.to_datetime(df['交易时间'])
@@ -139,5 +139,5 @@ def main(platform='longbridge'):
 
 if __name__ == '__main__':
     import sys
-    platform = sys.argv[1] if len(sys.argv) > 1 else 'longbridge'
+    platform = sys.argv[1] if len(sys.argv) > 1 else 'futu'
     main(platform) 
