@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 import time
 from collections import deque
 from threading import Lock
+import argparse
+import os
 
 class RateLimiter:
     def __init__(self, max_requests, time_window):
@@ -28,7 +30,7 @@ class RateLimiter:
             # 添加新的请求记录
             self.requests.append(time.time())
 
-def get_history_orders():
+def get_history_orders(start_date, end_date):
     # 创建OpenD连接
     quote_ctx = OpenQuoteContext(host='127.0.0.1', port=11111)
     # 不指定市场，获取所有市场的交易权限
@@ -73,9 +75,8 @@ def get_history_orders():
             for market in markets_to_query:
                 print(f"  ...正在查询市场: {market}")
                 
-                # 设置查询时间范围
-                start_date = datetime(2022, 1, 1)
-                end_date = datetime(2024, 12, 30)
+                # 使用传入的查询时间范围
+                # start_date 和 end_date 已由函数参数传入
                 
                 # 每3个月为一个批次
                 current_start = start_date
@@ -167,8 +168,16 @@ def get_history_orders():
         # 打印最终结果的汇总信息
         print(final_df)
         
-        # 保存结果到统一的CSV文件
-        filename = 'data/futu_history_raw.csv'
+        # 保存结果到按时间命名的CSV文件
+        # 确保 data 目录存在
+        data_dir = 'data'
+        if not os.path.exists(data_dir):
+            os.makedirs(data_dir)
+            print(f"已创建目录: {data_dir}")
+        
+        start_str = start_date.strftime('%Y%m%d')
+        end_str = end_date.strftime('%Y%m%d')
+        filename = f'{data_dir}/futu_history_raw_{start_str}_{end_str}.csv'
         final_df.to_csv(filename, index=False, encoding='utf-8-sig')
         print(f"\n所有账户数据已合并保存到 {filename}")
                 
@@ -178,4 +187,25 @@ def get_history_orders():
         trade_ctx.close()
 
 if __name__ == '__main__':
-    get_history_orders() 
+    parser = argparse.ArgumentParser(description='下载富途历史订单数据')
+    parser.add_argument('--start', type=str, required=True, help='开始日期，格式: YYYY-MM-DD')
+    parser.add_argument('--end', type=str, required=True, help='结束日期，格式: YYYY-MM-DD')
+    
+    args = parser.parse_args()
+    
+    # 解析日期
+    try:
+        start_date = datetime.strptime(args.start, '%Y-%m-%d')
+        end_date = datetime.strptime(args.end, '%Y-%m-%d')
+    except ValueError as e:
+        print(f'日期格式错误: {e}')
+        print('请使用 YYYY-MM-DD 格式，例如: 2022-01-01')
+        exit(1)
+    
+    # 验证日期范围
+    if start_date >= end_date:
+        print('错误: 开始日期必须早于结束日期')
+        exit(1)
+    
+    print(f'查询时间范围: {start_date.strftime("%Y-%m-%d")} 至 {end_date.strftime("%Y-%m-%d")}')
+    get_history_orders(start_date, end_date) 
