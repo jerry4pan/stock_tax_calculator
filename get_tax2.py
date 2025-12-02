@@ -2,11 +2,6 @@ import pandas as pd
 from collections import defaultdict
 import numpy as np
 import re
-from collections import defaultdict
-import pandas as pd
-import re
-from collections import defaultdict
-
 
 def process_item(holdings,trade):
     option_pattern = re.compile(r'([A-Z]+)(\d{6})([CP])(\d+).US')

@@ -3,17 +3,23 @@ import re
 import pandas as pd
 from glob import glob
 
-# 匹配文件名的正则
-pattern = re.compile(r'(\w+)_(method\d+)_profit_(\d{4})\\.csv')
-
 # 汇总结果列表
 results = []
 
-# 遍历data目录下所有csv文件
-for file in glob('data/*_method*_profit_*.csv'):
+# 遍历data目录下所有利润文件(支持 method1, method2, moving_avg 等)
+for file in glob('data/*_profit_*.csv'):
     
     filename = os.path.basename(file)
-    platform, method, _,year = filename.split(".")[0].split("_")
+    parts = filename.split(".")[0].split("_")
+    
+    # 解析文件名: platform_method_profit_year.csv 或 platform_moving_avg_profit_year.csv
+    if len(parts) == 4:
+        platform, method, _, year = parts
+    elif len(parts) == 5:
+        platform, method1, method2, _, year = parts
+        method = f"{method1}_{method2}"
+    else:
+        continue
     df = pd.read_csv(file)
     # 只保留配对原因为年度汇总的条目
     df = df[df['配对原因'] == '年度汇总']
@@ -38,4 +44,9 @@ for method in methods:
         print(f'\n方式: {method},计税方式：{tax_method}')
         sub_df = summary_df[(summary_df['方式'] == method) & (summary_df['股票代码'] == tax_method)]
         grouped = sub_df.groupby(['年份', '币种']).agg({'利润': 'sum'}).reset_index()
-        print(grouped) 
+        
+        # 格式化输出，确保对齐
+        print(f"{'年份':>6}  {'币种':>6}  {'利润':>20}")
+        for _, row in grouped.iterrows():
+            profit = f"{row['利润']:,.4f}"
+            print(f"{row['年份']:>6}  {row['币种']:>6}  {profit:>20}") 
