@@ -13,8 +13,11 @@
 - 长桥（Longbridge）
 
 ## 主要文件说明
-- `get_tax1.py`(加权平均法)、`get_tax2.py`(移动加权平均法)：不同配对方式的税务计算脚本
-- `data/`：存放各平台流水、利润明细、年度汇总等csv文件
+- `get_tax1.py`（加权平均法）：按加权平均成本计算年度盈利
+- `get_tax2.py`（移动加权平均法）：按移动加权平均成本计算年度盈利
+- `get_tax_moving_avg.py`（移动加权平均法 + 持仓快照）：计算年度盈利并输出每年年初/年末持仓情况
+- `report.py`：汇总报表生成脚本
+- `data/`：存放各平台流水、利润明细、年度汇总、持仓快照等csv文件
 
 ## 各平台数据下载流程
 
@@ -27,7 +30,8 @@
 3. **格式转换**：
    - 运行 `futu/export.py`，将原始数据转换为标准格式，生成 `data/futu_history.csv`。
 4. **生成年度利润明细**：
-   - 运行 `get_tax1.py`、`get_tax2.py`，自动生成 `data/futu_method1_profit_年份.csv`、`data/futu_method2_profit_年份.csv` 等文件。
+   - 运行 `python get_tax1.py futu` 或 `python get_tax2.py futu`，自动生成 `data/futu_weighted_avg_profit_年份.csv`、`data/futu_moving_avg_profit_年份.csv` 等文件。
+   - 运行 `python get_tax_moving_avg.py futu`，除了生成利润文件外，还会生成年度持仓快照文件 `data/futu_holdings_年份.csv`。
 
 ### 长桥（Longbridge）
 1. **API准备**：
@@ -38,7 +42,8 @@
 3. **下载资金流水**：
    - 运行 `longbridge/download_cash_flow.py`，生成 `data/longbridge_cash.csv`。
 4. **生成年度利润明细**：
-   - 运行 `get_tax1.py`、`get_tax2.py`，自动生成 `data/longbridge_method1_profit_年份.csv`、`data/longbridge_method2_profit_年份.csv` 等文件。
+   - 运行 `python get_tax1.py longbridge` 或 `python get_tax2.py longbridge`，自动生成 `data/longbridge_weighted_avg_profit_年份.csv`、`data/longbridge_moving_avg_profit_年份.csv` 等文件。
+   - 运行 `python get_tax_moving_avg.py longbridge`，除了生成利润文件外，还会生成年度持仓快照文件 `data/longbridge_holdings_年份.csv`。
 
 ## report脚本说明
 
@@ -67,7 +72,33 @@
 - 控制台分别输出每种方式（如method1、method2）下，按平台、年份、币种、股票代码分组的年度利润表
 - 可根据需要修改脚本，筛选特定平台、币种、年份或导出为Excel
 
+## 持仓快照功能
+
+使用 `get_tax_moving_avg.py` 脚本时，会自动生成年度持仓快照文件，便于核对账户状态。
+
+### 输出文件格式
+- 文件名：`data/{platform}_holdings_{year}.csv`
+- 字段说明：
+  - `股票代码`：股票代码
+  - `结算币种`：结算货币
+  - `年初持有数量`：该年度第一笔交易前的持有数量
+  - `年初平均成本`：该年度第一笔交易前的平均成本
+  - `年末持有数量`：该年度最后一笔交易后的持有数量
+  - `年末平均成本`：该年度最后一笔交易后的平均成本
+
+### 使用示例
+```bash
+python get_tax_moving_avg.py futu
+# 会生成：
+# data/futu_moving_avg_profit_2023.csv（利润明细）
+# data/futu_holdings_2023.csv（2023年持仓快照）
+# data/futu_moving_avg_profit_2024.csv（利润明细）
+# data/futu_holdings_2024.csv（2024年持仓快照）
+```
+
 ---
+
+## 依赖要求
 
 安装依赖：
 ```bash

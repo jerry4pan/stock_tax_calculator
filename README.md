@@ -15,8 +15,11 @@ Currently, **Futu** and **Longbridge** are supported. Please make sure to enable
 - Longbridge
 
 ## Main Files
-- `get_tax1.py` (Weighted Average Method), `get_tax2.py` (Moving Weighted Average Method): Tax calculation scripts for different matching methods
-- `data/`: Stores transaction records, profit details, annual summary CSVs, etc.
+- `get_tax1.py` (Weighted Average Method): Calculate annual profit using weighted average cost
+- `get_tax2.py` (Moving Weighted Average Method): Calculate annual profit using moving weighted average cost
+- `get_tax_moving_avg.py` (Moving Weighted Average + Holdings Snapshot): Calculate annual profit and output year-start/year-end holdings
+- `report.py`: Summary report generation script
+- `data/`: Stores transaction records, profit details, annual summaries, holdings snapshots, etc.
 
 ## Data Download Process for Each Platform
 
@@ -29,7 +32,8 @@ Currently, **Futu** and **Longbridge** are supported. Please make sure to enable
 3. **Format Conversion:**
    - Run `futu/export.py` to convert the raw data to standard format, generating `data/futu_history.csv`.
 4. **Generate Annual Profit Details:**
-   - Run `get_tax1.py` and `get_tax2.py` to automatically generate files like `data/futu_method1_profit_YEAR.csv`, `data/futu_method2_profit_YEAR.csv`, etc.
+   - Run `python get_tax1.py futu` or `python get_tax2.py futu` to automatically generate files like `data/futu_weighted_avg_profit_YEAR.csv`, `data/futu_moving_avg_profit_YEAR.csv`, etc.
+   - Run `python get_tax_moving_avg.py futu` to generate profit files plus annual holdings snapshot files `data/futu_holdings_YEAR.csv`.
 
 ### Longbridge
 1. **API Preparation:**
@@ -40,7 +44,8 @@ Currently, **Futu** and **Longbridge** are supported. Please make sure to enable
 3. **Download Cash Flow:**
    - Run `longbridge/download_cash_flow.py` to generate `data/longbridge_cash.csv`.
 4. **Generate Annual Profit Details:**
-   - Run `get_tax1.py` and `get_tax2.py` to automatically generate files like `data/longbridge_method1_profit_YEAR.csv`, `data/longbridge_method2_profit_YEAR.csv`, etc.
+   - Run `python get_tax1.py longbridge` or `python get_tax2.py longbridge` to automatically generate files like `data/longbridge_weighted_avg_profit_YEAR.csv`, `data/longbridge_moving_avg_profit_YEAR.csv`, etc.
+   - Run `python get_tax_moving_avg.py longbridge` to generate profit files plus annual holdings snapshot files `data/longbridge_holdings_YEAR.csv`.
 
 ## report Script
 
@@ -72,6 +77,30 @@ The `report` script is used to automatically aggregate and display tax profit da
 #### Output
 - The console will output annual profit tables for each method (e.g., method1, method2), grouped by platform, year, currency, and stock code
 - You can modify the script as needed to filter by specific platform, currency, year, or export to Excel
+
+## Holdings Snapshot Feature
+
+When using the `get_tax_moving_avg.py` script, it automatically generates annual holdings snapshot files for easy account verification.
+
+### Output File Format
+- File name: `data/{platform}_holdings_{year}.csv`
+- Field descriptions:
+  - `股票代码` (Stock Code): Stock ticker symbol
+  - `结算币种` (Settlement Currency): Settlement currency
+  - `年初持有数量` (Year-Start Quantity): Holdings before the first trade of the year
+  - `年初平均成本` (Year-Start Avg Cost): Average cost before the first trade of the year
+  - `年末持有数量` (Year-End Quantity): Holdings after the last trade of the year
+  - `年末平均成本` (Year-End Avg Cost): Average cost after the last trade of the year
+
+### Usage Example
+```bash
+python get_tax_moving_avg.py futu
+# Will generate:
+# data/futu_moving_avg_profit_2023.csv (profit details)
+# data/futu_holdings_2023.csv (2023 holdings snapshot)
+# data/futu_moving_avg_profit_2024.csv (profit details)
+# data/futu_holdings_2024.csv (2024 holdings snapshot)
+```
 
 ---
 
