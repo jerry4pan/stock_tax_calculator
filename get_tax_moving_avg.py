@@ -113,6 +113,72 @@ def summary_year(all_profits, save_path):
     df_result.to_csv(save_path, index=False, encoding='utf-8-sig')
 
 
+def save_holdings_snapshot(holdings, year, timing, platform, df, year_holdings):
+    """
+    保存持仓快照
+    timing: 'start' 或 'end'
+    year_holdings: 存储年度持仓数据的字典
+    """
+    snapshot = []
+    
+    # 遍历所有持仓
+    for symbol, hold in holdings.items():
+        if hold["quantity"] > 0:
+            # 从交易历史中查找该股票的结算币种
+            currency_info = df[df['股票代码'] == symbol]
+            currency = currency_info.iloc[0]['结算币种'] if not currency_info.empty else 'Unknown'
+            
+            snapshot.append({
+                "股票代码": symbol,
+                "持有数量": hold["quantity"],
+                "平均成本": hold["avg_cost"],
+                "结算币种": currency
+            })
+    
+    # 将快照存入年度持仓字典
+    if year not in year_holdings:
+        year_holdings[year] = {}
+    year_holdings[year][timing] = snapshot
+
+
+def save_year_holdings_file(year, year_holdings, platform):
+    """
+    将同一年的年初和年末持仓合并保存到一个文件
+    """
+    if year not in year_holdings:
+        return
+    
+    data = year_holdings[year]
+    rows = []
+    
+    # 获取年初和年末的所有股票代码
+    start_data = {item['股票代码']: item for item in data.get('start', [])}
+    end_data = {item['股票代码']: item for item in data.get('end', [])}
+    all_symbols = set(start_data.keys()) | set(end_data.keys())
+    
+    for symbol in sorted(all_symbols):
+        start_item = start_data.get(symbol, {})
+        end_item = end_data.get(symbol, {})
+        
+        rows.append({
+            "股票代码": symbol,
+            "结算币种": start_item.get('结算币种', end_item.get('结算币种', 'Unknown')),
+            "年初持有数量": start_item.get('持有数量', 0),
+            "年初平均成本": start_item.get('平均成本', 0),
+            "年末持有数量": end_item.get('持有数量', 0),
+            "年末平均成本": end_item.get('平均成本', 0)
+        })
+    
+    if rows:
+        df_output = pd.DataFrame(rows)
+        # 按结算币种和股票代码排序
+        df_output = df_output.sort_values(['结算币种', '股票代码'])
+        
+        save_path = f"data/{platform}_holdings_{year}.csv"
+        df_output.to_csv(save_path, index=False, encoding='utf-8-sig')
+        print(f"  已保存 {year} 年度持仓: {save_path}")
+
+
 def main(platform='futu'):
     """
     主函数: 读取交易记录, 按年度计算利润
@@ -137,16 +203,30 @@ def main(platform='futu'):
     holdings = defaultdict(lambda: {'quantity': 0.0, 'avg_cost': 0.0})
     all_profits = []
     cur_year = None
+    year_holdings = {}  # 存储每年的持仓快照
     
     # 遍历每笔交易
     for _, trade in df.iterrows():
         # 检查年份变化
         if cur_year is not None and trade["年份"] != cur_year:
+            # 保存上一年度年末持仓
+            save_holdings_snapshot(holdings, cur_year, 'end', platform, df, year_holdings)
+            
+            # 保存上一年度持仓文件（合并年初和年末）
+            save_year_holdings_file(cur_year, year_holdings, platform)
+            
             # 汇总上一年度利润
             save_path = f"data/{platform}_moving_avg_profit_{cur_year}.csv"
             summary_year(all_profits, save_path)
             print(f"已保存 {cur_year} 年度利润: {save_path}")
             all_profits = []
+            
+            # 保存新年度年初持仓
+            save_holdings_snapshot(holdings, trade["年份"], 'start', platform, df, year_holdings)
+        
+        # 如果是第一年的第一笔交易，保存年初持仓（此时应为空）
+        if cur_year is None:
+            save_holdings_snapshot(holdings, trade["年份"], 'start', platform, df, year_holdings)
         
         cur_year = trade["年份"]
         
@@ -161,6 +241,12 @@ def main(platform='futu'):
     
     # 汇总最后年度
     if cur_year is not None:
+        # 保存最后年度年末持仓
+        save_holdings_snapshot(holdings, cur_year, 'end', platform, df, year_holdings)
+        
+        # 保存最后年度持仓文件（合并年初和年末）
+        save_year_holdings_file(cur_year, year_holdings, platform)
+        
         save_path = f"data/{platform}_moving_avg_profit_{cur_year}.csv"
         summary_year(all_profits, save_path)
         print(f"已保存 {cur_year} 年度利润: {save_path}")
