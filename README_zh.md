@@ -26,9 +26,18 @@
    - 安装富途OpenD网关并启动，确保本地11111端口可用。
    - 参考[富途OpenAPI文档](https://openapi.futunn.com/)获取API密钥。
 2. **下载交易流水**：
-   - 运行 `futu/download.py`，自动批量下载所有账户的历史订单，生成 `data/futu_history_raw.csv`。
+   - 运行 `futu/download.py`，指定起止日期，自动批量下载所有账户的历史订单，生成 `data/futu_history_raw_起始日期_结束日期.csv`。
+   - 使用示例：
+     ```bash
+     python futu/download.py --start 2022-01-01 --end 2024-12-31
+     ```
+   - 参数说明：
+     - `--start`：开始日期，格式 YYYY-MM-DD（必填）
+     - `--end`：结束日期，格式 YYYY-MM-DD（必填）
+   - 输出文件：`data/futu_history_raw_20220101_20241231.csv`
 3. **格式转换**：
    - 运行 `futu/export.py`，将原始数据转换为标准格式，生成 `data/futu_history.csv`。
+   - 注意：`export.py` 会自动合并所有以 `futu_history_raw` 开头的 CSV 文件。
 4. **生成年度利润明细**：
    - 运行 `python get_tax1.py futu` 或 `python get_tax2.py futu`，自动生成 `data/futu_weighted_avg_profit_年份.csv`、`data/futu_moving_avg_profit_年份.csv` 等文件。
    - 运行 `python get_tax_moving_avg.py futu`，除了生成利润文件外，还会生成年度持仓快照文件 `data/futu_holdings_年份.csv`。

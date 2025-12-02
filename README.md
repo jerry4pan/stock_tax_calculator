@@ -28,9 +28,18 @@ Currently, **Futu** and **Longbridge** are supported. Please make sure to enable
    - Install and start the Futu OpenD gateway, ensuring local port 11111 is available.
    - Refer to the [Futu OpenAPI documentation](https://openapi.futunn.com/) to obtain your API key.
 2. **Download Trading Records:**
-   - Run `futu/download.py` to batch download all account historical orders, generating `data/futu_history_raw.csv`.
+   - Run `futu/download.py` with specified date range to batch download all account historical orders, generating `data/futu_history_raw_STARTDATE_ENDDATE.csv`.
+   - Usage example:
+     ```bash
+     python futu/download.py --start 2022-01-01 --end 2024-12-31
+     ```
+   - Parameters:
+     - `--start`: Start date in YYYY-MM-DD format (required)
+     - `--end`: End date in YYYY-MM-DD format (required)
+   - Output file: `data/futu_history_raw_20220101_20241231.csv`
 3. **Format Conversion:**
    - Run `futu/export.py` to convert the raw data to standard format, generating `data/futu_history.csv`.
+   - Note: `export.py` automatically merges all CSV files starting with `futu_history_raw`.
 4. **Generate Annual Profit Details:**
    - Run `python get_tax1.py futu` or `python get_tax2.py futu` to automatically generate files like `data/futu_weighted_avg_profit_YEAR.csv`, `data/futu_moving_avg_profit_YEAR.csv`, etc.
    - Run `python get_tax_moving_avg.py futu` to generate profit files plus annual holdings snapshot files `data/futu_holdings_YEAR.csv`.
