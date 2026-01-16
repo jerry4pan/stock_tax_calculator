@@ -1,7 +1,7 @@
 # 股票税务计算器
 
 为了应对CRS监管，合理报税，本项目旨在利用量化API自动获取各个平台的股票交易记录并计算不同方式下的盈利，以方便作为报税依据。
-现在已经支持**富途牛牛**和**长桥**，使用前请自行开通相关平台的API并准备好密钥和网关程序。
+现在已经支持**富途牛牛**，使用前请自行开通相关平台的API并准备好密钥和网关程序。
 
 ## 功能简介
 - 自动获取股票交易流水、资金流水
@@ -10,12 +10,47 @@
 
 ## 支持平台
 - 富途牛牛（Futu）
-- 长桥（Longbridge）
+
+## 快速开始
+
+> **提示：** 开始前请确保富途 OpenD 网关已启动。
+
+### 第1步：下载交易流水
+
+指定日期范围下载历史订单。已下载的交易流水可复用，按起止时间增量下载即可。
+
+```bash
+python futu/download.py --start 2022-01-01 --end 2024-12-31
+```
+
+### 第2步：流水格式转换
+
+将所有原始数据文件转换并统一合并到 `futu_history.csv`：
+
+```bash
+python futu/export.py
+```
+
+### 第3步：生成年度利润明细及持仓快照
+
+运行推荐的计算脚本，生成年度利润明细和持仓快照：
+
+```bash
+python get_tax_moving_avg.py futu
+```
+
+### 第4步：查看税务报表
+
+运行报表脚本，输出年度利润汇总，了解报税情况：
+
+```bash
+python report.py
+```
 
 ## 主要文件说明
 - `get_tax1.py`（加权平均法）：按加权平均成本计算年度盈利
 - `get_tax2.py`（移动加权平均法）：按移动加权平均成本计算年度盈利
-- `get_tax_moving_avg.py`（移动加权平均法 + 持仓快照）：计算年度盈利并输出每年年初/年末持仓情况
+- `get_tax_moving_avg.py`（移动加权平均法 + 持仓快照）⭐ **推荐**：计算年度盈利并输出每年年初/年末持仓情况，便于核对账户状态
 - `report.py`：汇总报表生成脚本
 - `data/`：存放各平台流水、利润明细、年度汇总、持仓快照等csv文件
 
@@ -42,17 +77,6 @@
    - 运行 `python get_tax1.py futu` 或 `python get_tax2.py futu`，自动生成 `data/futu_weighted_avg_profit_年份.csv`、`data/futu_moving_avg_profit_年份.csv` 等文件。
    - 运行 `python get_tax_moving_avg.py futu`，除了生成利润文件外，还会生成年度持仓快照文件 `data/futu_holdings_年份.csv`。
 
-### 长桥（Longbridge）
-1. **API准备**：
-   - 注册并开通长桥OpenAPI，获取API密钥。
-   - 配置环境变量或在脚本中填写API密钥。
-2. **下载交易流水**：
-   - 运行 `longbridge/download_trade_flow.py`，自动下载历史订单，生成 `data/longbridge_history.csv`。
-3. **下载资金流水**：
-   - 运行 `longbridge/download_cash_flow.py`，生成 `data/longbridge_cash.csv`。
-4. **生成年度利润明细**：
-   - 运行 `python get_tax1.py longbridge` 或 `python get_tax2.py longbridge`，自动生成 `data/longbridge_weighted_avg_profit_年份.csv`、`data/longbridge_moving_avg_profit_年份.csv` 等文件。
-   - 运行 `python get_tax_moving_avg.py longbridge`，除了生成利润文件外，还会生成年度持仓快照文件 `data/longbridge_holdings_年份.csv`。
 
 ## report脚本说明
 
@@ -74,7 +98,7 @@
 3. 程序会自动输出每种方式下的年度税款表
 
 ### 输入说明
-- 需要 `data/` 目录下有如 `futu_method1_profit_2023.csv`、`longbridge_method2_profit_2024.csv` 等文件
+- 需要 `data/` 目录下有如 `futu_method1_profit_2023.csv` 等文件
 - 文件需包含“配对原因”、“结算币种”、“股票代码”、“利润”等字段
 
 ### 输出说明

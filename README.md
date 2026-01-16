@@ -3,7 +3,7 @@
 # Stock Tax Calculator
 
 To comply with CRS regulations and facilitate tax reporting, this project leverages quantitative APIs to automatically fetch stock trading records from multiple platforms and calculate profits under different matching methods, providing a reliable basis for tax declaration.
-Currently, **Futu** and **Longbridge** are supported. Please make sure to enable the relevant platform APIs and prepare the required keys and gateway programs before use.
+Currently, **Futu** is supported. Please make sure to enable the relevant platform APIs and prepare the required keys and gateway programs before use.
 
 ## Features
 - Automatically fetch stock trading and cash flow records
@@ -12,12 +12,47 @@ Currently, **Futu** and **Longbridge** are supported. Please make sure to enable
 
 ## Supported Platforms
 - Futu
-- Longbridge
+
+## Quick Start
+
+> **Note:** Ensure the Futu OpenD gateway is running before starting.
+
+### Step 1: Download Trading Records
+
+Download historical orders by specifying a date range. Previously downloaded records can be reused—just download incrementally for new date ranges.
+
+```bash
+python futu/download.py --start 2022-01-01 --end 2024-12-31
+```
+
+### Step 2: Format Conversion
+
+Convert and merge all raw data files into a unified `futu_history.csv`:
+
+```bash
+python futu/export.py
+```
+
+### Step 3: Generate Annual Profit & Holdings Snapshot
+
+Run the recommended calculation script to generate annual profit details and holdings snapshots:
+
+```bash
+python get_tax_moving_avg.py futu
+```
+
+### Step 4: View Tax Report
+
+Run the report script to display annual profit summaries for tax preparation:
+
+```bash
+python report.py
+```
 
 ## Main Files
 - `get_tax1.py` (Weighted Average Method): Calculate annual profit using weighted average cost
 - `get_tax2.py` (Moving Weighted Average Method): Calculate annual profit using moving weighted average cost
-- `get_tax_moving_avg.py` (Moving Weighted Average + Holdings Snapshot): Calculate annual profit and output year-start/year-end holdings
+- `get_tax_moving_avg.py` (Moving Weighted Average + Holdings Snapshot) ⭐ **Recommended**: Calculate annual profit and output year-start/year-end holdings for account verification
 - `report.py`: Summary report generation script
 - `data/`: Stores transaction records, profit details, annual summaries, holdings snapshots, etc.
 
@@ -44,17 +79,6 @@ Currently, **Futu** and **Longbridge** are supported. Please make sure to enable
    - Run `python get_tax1.py futu` or `python get_tax2.py futu` to automatically generate files like `data/futu_weighted_avg_profit_YEAR.csv`, `data/futu_moving_avg_profit_YEAR.csv`, etc.
    - Run `python get_tax_moving_avg.py futu` to generate profit files plus annual holdings snapshot files `data/futu_holdings_YEAR.csv`.
 
-### Longbridge
-1. **API Preparation:**
-   - Register and enable Longbridge OpenAPI, and obtain your API key.
-   - Configure environment variables or fill in the API key in the script.
-2. **Download Trading Records:**
-   - Run `longbridge/download_trade_flow.py` to download historical orders, generating `data/longbridge_history.csv`.
-3. **Download Cash Flow:**
-   - Run `longbridge/download_cash_flow.py` to generate `data/longbridge_cash.csv`.
-4. **Generate Annual Profit Details:**
-   - Run `python get_tax1.py longbridge` or `python get_tax2.py longbridge` to automatically generate files like `data/longbridge_weighted_avg_profit_YEAR.csv`, `data/longbridge_moving_avg_profit_YEAR.csv`, etc.
-   - Run `python get_tax_moving_avg.py longbridge` to generate profit files plus annual holdings snapshot files `data/longbridge_holdings_YEAR.csv`.
 
 ## report Script
 
@@ -80,7 +104,7 @@ The `report` script is used to automatically aggregate and display tax profit da
 3. The script will automatically output annual tax tables for each method
 
 #### Input
-- Requires files like `futu_method1_profit_2023.csv`, `longbridge_method2_profit_2024.csv`, etc. in the `data/` directory
+- Requires files like `futu_method1_profit_2023.csv` in the `data/` directory
 - Files must contain fields such as "配对原因" (matching reason), "结算币种" (settlement currency), "股票代码" (stock code), "利润" (profit), etc.
 
 #### Output
