@@ -50,8 +50,6 @@ python report.py
 ```
 
 ## Main Files
-- `get_tax1.py` (Weighted Average Method): Calculate annual profit using weighted average cost
-- `get_tax2.py` (Moving Weighted Average Method): Calculate annual profit using moving weighted average cost
 - `get_tax_moving_avg.py` (Moving Weighted Average + Holdings Snapshot) ⭐ **Recommended**: Calculate annual profit and output year-start/year-end holdings for account verification
 - `report.py`: Summary report generation script
 - `data/`: Stores transaction records, profit details, annual summaries, holdings snapshots, etc.
@@ -76,7 +74,6 @@ python report.py
    - Run `futu/export.py` to convert the raw data to standard format, generating `data/futu_history.csv`.
    - Note: `export.py` automatically merges all CSV files starting with `futu_history_raw`.
 4. **Generate Annual Profit Details:**
-   - Run `python get_tax1.py futu` or `python get_tax2.py futu` to automatically generate files like `data/futu_weighted_avg_profit_YEAR.csv`, `data/futu_moving_avg_profit_YEAR.csv`, etc.
    - Run `python get_tax_moving_avg.py futu` to generate profit files plus annual holdings snapshot files `data/futu_holdings_YEAR.csv`.
 
 
@@ -141,9 +138,11 @@ python get_tax_moving_avg.py futu
 - Python 3.7+
 - pandas
 
-Install dependencies:
+Install dependencies using a virtual environment:
 ```bash
-pip install pandas
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
 ## Issues

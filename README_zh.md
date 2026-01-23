@@ -48,8 +48,6 @@ python report.py
 ```
 
 ## 主要文件说明
-- `get_tax1.py`（加权平均法）：按加权平均成本计算年度盈利
-- `get_tax2.py`（移动加权平均法）：按移动加权平均成本计算年度盈利
 - `get_tax_moving_avg.py`（移动加权平均法 + 持仓快照）⭐ **推荐**：计算年度盈利并输出每年年初/年末持仓情况，便于核对账户状态
 - `report.py`：汇总报表生成脚本
 - `data/`：存放各平台流水、利润明细、年度汇总、持仓快照等csv文件
@@ -74,7 +72,6 @@ python report.py
    - 运行 `futu/export.py`，将原始数据转换为标准格式，生成 `data/futu_history.csv`。
    - 注意：`export.py` 会自动合并所有以 `futu_history_raw` 开头的 CSV 文件。
 4. **生成年度利润明细**：
-   - 运行 `python get_tax1.py futu` 或 `python get_tax2.py futu`，自动生成 `data/futu_weighted_avg_profit_年份.csv`、`data/futu_moving_avg_profit_年份.csv` 等文件。
    - 运行 `python get_tax_moving_avg.py futu`，除了生成利润文件外，还会生成年度持仓快照文件 `data/futu_holdings_年份.csv`。
 
 
@@ -133,7 +130,9 @@ python get_tax_moving_avg.py futu
 
 ## 依赖要求
 
-安装依赖：
+安装依赖（推荐使用虚拟环境）：
 ```bash
-pip install pandas
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
