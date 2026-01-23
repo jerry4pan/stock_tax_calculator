@@ -31,9 +31,9 @@ def main(platform='futu'):
     cur_year = None
     
     # Process each trade
-    for _, trade in df.iterrows():
+    for trade in df.itertuples():
         # Check for year change
-        if cur_year is not None and trade["年份"] != cur_year:
+        if cur_year is not None and trade.年份 != cur_year:
             # Save end-of-year snapshot for previous year
             calculator.save_holdings_snapshot(cur_year, 'end', platform, df)
             
@@ -47,19 +47,29 @@ def main(platform='futu'):
             calculator.all_profits = []
             
             # Save start-of-year snapshot for new year
-            calculator.save_holdings_snapshot(trade["年份"], 'start', platform, df)
+            calculator.save_holdings_snapshot(trade.年份, 'start', platform, df)
         
         # If first year, save start snapshot
         if cur_year is None:
-            calculator.save_holdings_snapshot(trade["年份"], 'start', platform, df)
+            calculator.save_holdings_snapshot(trade.年份, 'start', platform, df)
         
-        cur_year = trade["年份"]
+        cur_year = trade.年份
+        
+        # Create a dictionary-like interface for compatibility with Calculator
+        # using _asdict() from namedtuple but filtering/mapping keys if necessary
+        # The Calculator expects keys: '股票代码', '数量', '成交价格', '合计手续费', etc.
+        # itertuples attributes will match column names but spaces/special chars might be an issue?
+        # Pandas replaces spaces with _ in namedtuples usually, but Chinese characters are fine.
+        
+        trade_dict = trade._asdict()
+        # Ensure we're passing a dict that keys can be accessed via ['key']
+        # itertuples returns a namedtuple where access is .attribute
         
         # Determine trade side
-        if trade['买卖方向'] == "OrderSide.Buy":
-            calculator.process_buy(trade)
-        elif trade['买卖方向'] == "OrderSide.Sell":
-            profit_records = calculator.process_sell(trade)
+        if trade.买卖方向 == "OrderSide.Buy":
+            calculator.process_buy(trade_dict)
+        elif trade.买卖方向 == "OrderSide.Sell":
+            profit_records = calculator.process_sell(trade_dict)
             calculator.all_profits.extend(profit_records)
     
     # Summary for the last year

@@ -1,11 +1,12 @@
 from collections import defaultdict
-import numpy as np
 import re
 import pandas as pd
+from decimal import Decimal, ROUND_HALF_UP
 
 class Calculator:
     def __init__(self):
-        self.holdings = defaultdict(lambda: {'quantity': 0.0, 'avg_cost': 0.0})
+        # holdings: {'quantity': Decimal, 'avg_cost': Decimal}
+        self.holdings = defaultdict(lambda: {'quantity': Decimal('0'), 'avg_cost': Decimal('0')})
         self.year_holdings = {}
         self.all_profits = []
 
@@ -15,9 +16,10 @@ class Calculator:
         Updates holdings quantity and average cost (fees included in cost).
         """
         symbol = str(trade['股票代码'])
-        qty = trade['数量']
-        price = trade['成交价格']
-        fee = trade['合计手续费']
+        # Convert to Decimal for precision
+        qty = Decimal(str(trade['数量']))
+        price = Decimal(str(trade['成交价格']))
+        fee = Decimal(str(trade['合计手续费']))
         
         hold = self.holdings[symbol]
         cur_qty = hold["quantity"]
@@ -25,7 +27,12 @@ class Calculator:
         # Calculate new average cost: (old_qty * old_cost + new_qty * new_price + fee) / new_total_qty
         total_cost = cur_qty * hold["avg_cost"] + qty * price + fee
         new_qty = cur_qty + qty
-        hold["avg_cost"] = total_cost / new_qty if new_qty > 0 else 0
+        
+        if new_qty != 0:
+            hold["avg_cost"] = total_cost / new_qty
+        else:
+            hold["avg_cost"] = Decimal('0')
+            
         hold["quantity"] = new_qty
 
     def process_sell(self, trade):
@@ -35,9 +42,9 @@ class Calculator:
         Returns a list of profit records.
         """
         symbol = str(trade['股票代码'])
-        qty = trade['数量']
-        price = trade['成交价格']
-        fee = trade['合计手续费']
+        qty = Decimal(str(trade['数量']))
+        price = Decimal(str(trade['成交价格']))
+        fee = Decimal(str(trade['合计手续费']))
         currency = trade['结算币种']
         trade_time = trade['交易时间']
         
@@ -54,7 +61,11 @@ class Calculator:
             total_cost = close_qty * hold["avg_cost"]
             
             # Pro-rated fee = total_fee * (closed_qty / sell_qty)
-            fee_ratio = close_qty / qty if qty > 0 else 0
+            if qty > 0:
+                fee_ratio = close_qty / qty
+            else:
+                fee_ratio = Decimal('0')
+                
             allocated_fee = fee * fee_ratio
             
             # Profit = Revenue - Cost - Fee
@@ -63,10 +74,10 @@ class Calculator:
             records.append({
                 "配对原因": "平仓了结",
                 "股票代码": symbol,
-                "卖出价格": price,
-                "成本价": hold["avg_cost"],
-                "数量": close_qty,
-                "利润": profit,
+                "卖出价格": float(price),
+                "成本价": float(hold["avg_cost"]),
+                "数量": float(close_qty),
+                "利润": float(profit),
                 "时间": trade_time,
                 "结算币种": currency
             })
@@ -92,8 +103,8 @@ class Calculator:
                 
                 snapshot.append({
                     "股票代码": symbol,
-                    "持有数量": hold["quantity"],
-                    "平均成本": hold["avg_cost"],
+                    "持有数量": float(hold["quantity"]),
+                    "平均成本": float(hold["avg_cost"]),
                     "结算币种": currency
                 })
         
