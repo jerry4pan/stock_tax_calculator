@@ -91,7 +91,7 @@ This repository contains Python scripts for calculating stock taxes based on tra
 - **Data Integrity**: Never manually edit the CSVs in `data/` unless for creating mock data for tests.
 - **Dependencies**: If you add a library, update `requirements.txt`.
 - **CSV Handling**: Always handle `NaN` values in pandas DataFrames (e.g., `np.isnan(price)` check in `get_tax1.py`).
-- **Git**: Do not commit large CSV files in `data/` if they contain real personal data. (Check `.gitignore`).
+- **Git**: Never commit `data/` or real trading CSVs (`git add -f` is also forbidden). Keep `data/` and `*.csv` in `.gitignore`.
 
 ## 5. Specific Code Patterns
 

@@ -34,9 +34,11 @@ env/
 *~
 .DS_Store
 
-# Data files (contains sensitive trading data)
+# Data files — DO NOT commit real trading / tax data
+# Never run: git add data/  or  git add -f *.csv
 data/
 *.csv
+!tests/**/*.csv
 
 # Logs
 *.log

@@ -2,8 +2,16 @@
 
 # Stock Tax Calculator
 
-To comply with CRS regulations and facilitate tax reporting, this project leverages quantitative APIs to automatically fetch stock trading records from multiple platforms and calculate profits under different matching methods, providing a reliable basis for tax declaration.
+To help with CRS-related record keeping and tax preparation, this project uses broker APIs to fetch stock trading records and calculate profits under different matching methods (e.g. moving weighted average).
 Currently, **Futu** is supported. Please make sure to enable the relevant platform APIs and prepare the required keys and gateway programs before use.
+
+## Disclaimer
+
+**This project is for personal record-keeping and reference only. It does not constitute tax, legal, or financial advice.** Profit figures are estimates based on the chosen matching method and your local data; they may differ from amounts required by tax authorities. You are solely responsible for verifying results and for any filings. The authors accept no liability for losses arising from use of this software.
+
+## Privacy
+
+Trading CSVs under `data/` and any `*.csv` files are gitignored. **Do not commit real account or trade data** (including `git add -f`). Use synthetic samples only if you need example files in the repo.
 
 ## Features
 - Automatically fetch stock trading and cash flow records
@@ -144,6 +152,10 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
 
 ## Issues
 If you have further requirements or questions, feel free to open an issue!
